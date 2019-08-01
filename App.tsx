@@ -1,5 +1,5 @@
 import * as React from "react";
-import { StyleSheet, Text, View, FlatList } from "react-native";
+import { FlatList } from "react-native";
 import styled from "styled-components/native";
 
 const Container = styled.View`
@@ -23,11 +23,22 @@ const PlayCard = styled.View`
 `;
 
 const H3 = styled.Text`
+  font-size: 20px;
   font-weight: bold;
   padding: 5px 0;
 `;
 
-const CopyText = styled.Text``;
+const CopyText = styled.Text`
+  font-size: 20px;
+`;
+
+const SearchBox = styled.TextInput`
+  font-size: 20px;
+  border: solid 1px #aaa;
+  border-radius: 8px;
+  padding: 10px;
+  margin: 10px 0;
+`;
 
 type AppState = {
   isLoading: boolean;
@@ -65,10 +76,12 @@ export default class App extends React.Component<null, AppState> {
             data={this.state.plays}
             keyExtractor={play => play.id.toString()}
             renderItem={({ item: play }) => {
-              const { title, description } = play;
+              const { id, title, description } = play;
               return (
                 <PlayCard>
-                  <H3>{title}</H3>
+                  <H3>
+                    #{id} {title}
+                  </H3>
                   <CopyText>
                     {description.charAt
                       ? `${description
@@ -81,6 +94,12 @@ export default class App extends React.Component<null, AppState> {
             }}
             ListEmptyComponent={
               <CopyText>No plays found in this playbook :(</CopyText>
+            }
+            ListHeaderComponent={
+              <SearchBox
+                placeholderTextColor={"#aaa"}
+                placeholder={"Search here..."}
+              />
             }
           />
         )}
