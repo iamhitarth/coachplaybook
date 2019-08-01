@@ -64,12 +64,21 @@ export default class App extends React.Component<null, AppState> {
           <FlatList
             data={this.state.plays}
             keyExtractor={play => play.id.toString()}
-            renderItem={({ item: play }) => (
-              <PlayCard>
-                <H3>{play.title}</H3>
-                <CopyText>{play.description}</CopyText>
-              </PlayCard>
-            )}
+            renderItem={({ item: play }) => {
+              const { title, description } = play;
+              return (
+                <PlayCard>
+                  <H3>{title}</H3>
+                  <CopyText>
+                    {description.charAt
+                      ? `${description
+                          .charAt(0)
+                          .toUpperCase()}${description.slice(1)}`
+                      : "-"}
+                  </CopyText>
+                </PlayCard>
+              );
+            }}
             ListEmptyComponent={
               <CopyText>No plays found in this playbook :(</CopyText>
             }
