@@ -2,27 +2,6 @@ import * as React from "react";
 import { StyleSheet, Text, View, FlatList } from "react-native";
 import styled from "styled-components/native";
 
-const plays = [
-  {
-    id: 1,
-    title: "Uncover strengths",
-    description:
-      "Focus on uncovering the strengths of the client by asking them about the times when they thought did really well and got the result they desired. Get them to describe what that felt like and what abilities of theirs did they use to get through that."
-  },
-  {
-    id: 2,
-    title: "Friend and Foe",
-    description:
-      "Get the client to talk about how a friend would describe them vs how a foe would describe them. This will give you a good idea of how the client perceives themselevs. Can be then paired up with an actual 360 feedback exercise."
-  },
-  {
-    id: 3,
-    title: "Energy Audit",
-    description:
-      "Get the client to draw a line in the middle of the page and write the Energy Providers on one side and Energy Drainers on the other. Work on making the Providers list longer than Drainers. Then work on coming up with an approach to counter each and every one of the Drainers and turn it into a Provider."
-  }
-];
-
 const Container = styled.View`
   flex: 1;
   background-color: #fff;
@@ -34,6 +13,7 @@ const Container = styled.View`
 const H1 = styled.Text`
   font-size: 32px;
   font-weight: 700;
+  margin-bottom: 15px;
 `;
 
 const PlayCard = styled.View`
@@ -49,21 +29,52 @@ const H3 = styled.Text`
 
 const CopyText = styled.Text``;
 
-export default class App extends React.Component {
+type AppState = {
+  isLoading: boolean;
+  plays: Array<{
+    id: number;
+    title: string;
+    description: string;
+    tags: Array<string>;
+  }>;
+};
+
+export default class App extends React.Component<null, AppState> {
+  state: AppState = {
+    isLoading: true,
+    plays: []
+  };
+
+  componentDidMount() {
+    fetch(
+      "http://gsx2json.com/api?id=1wEzLj6TVkeU5z82LmRrLeztlzciG0nCJlEvrG2yDpms&sheet=1"
+    )
+      .then(response => response.json())
+      .then(result => this.setState({ plays: result.rows, isLoading: false }));
+  }
+
   render() {
+    const { isLoading, plays } = this.state;
     return (
       <Container>
         <H1>Coaching Plays</H1>
-        <FlatList
-          data={plays}
-          keyExtractor={play => play.id.toString()}
-          renderItem={({ item: play }) => (
-            <PlayCard>
-              <H3>{play.title}</H3>
-              <CopyText>{play.description}</CopyText>
-            </PlayCard>
-          )}
-        />
+        {isLoading ? (
+          <CopyText>Loading...</CopyText>
+        ) : (
+          <FlatList
+            data={this.state.plays}
+            keyExtractor={play => play.id.toString()}
+            renderItem={({ item: play }) => (
+              <PlayCard>
+                <H3>{play.title}</H3>
+                <CopyText>{play.description}</CopyText>
+              </PlayCard>
+            )}
+            ListEmptyComponent={
+              <CopyText>No plays found in this playbook :(</CopyText>
+            }
+          />
+        )}
       </Container>
     );
   }
