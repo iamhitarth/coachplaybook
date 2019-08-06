@@ -1,6 +1,7 @@
 import * as React from "react";
 import { FlatList } from "react-native";
 import styled from "styled-components/native";
+import Fuse from "fuse.js";
 
 const Container = styled.View`
   flex: 1;
@@ -40,14 +41,36 @@ const SearchBox = styled.TextInput`
   margin: 10px 0;
 `;
 
+type Play = {
+  id: number;
+  title: string;
+  description: string;
+  tags: Array<string>;
+};
+
 type AppState = {
   isLoading: boolean;
-  plays: Array<{
-    id: number;
-    title: string;
-    description: string;
-    tags: Array<string>;
-  }>;
+  plays: Array<Play>;
+};
+
+/* 
+TODO
+Click a cross to clear search and restore all plays
+*/
+
+let fuse: Fuse<Array<Play>>;
+const searchOptions: Fuse.FuseOptions<Play> = {
+  keys: [
+    { name: "title", weight: 0.5 },
+    { name: "description", weight: 0.2 },
+    { name: "tags", weight: 0.3 }
+  ],
+  shouldSort: true,
+  threshold: 0.6,
+  location: 0,
+  distance: 100,
+  maxPatternLength: 32,
+  minMatchCharLength: 1
 };
 
 export default class App extends React.Component<null, AppState> {
@@ -56,12 +79,24 @@ export default class App extends React.Component<null, AppState> {
     plays: []
   };
 
+  fetchPlays = (query?: string) => {
+    this.setState({ isLoading: true }, () => {
+      fetch(
+        `http://gsx2json.com/api?id=1wEzLj6TVkeU5z82LmRrLeztlzciG0nCJlEvrG2yDpms&sheet=1${
+          query ? `&q=${query}` : ""
+        }`
+      )
+        .then(response => response.json())
+        .then(result => {
+          const plays = result.rows;
+          this.setState({ plays, isLoading: false });
+          fuse = new Fuse(plays, searchOptions);
+        });
+    });
+  };
+
   componentDidMount() {
-    fetch(
-      "http://gsx2json.com/api?id=1wEzLj6TVkeU5z82LmRrLeztlzciG0nCJlEvrG2yDpms&sheet=1"
-    )
-      .then(response => response.json())
-      .then(result => this.setState({ plays: result.rows, isLoading: false }));
+    this.fetchPlays();
   }
 
   render() {
@@ -69,40 +104,49 @@ export default class App extends React.Component<null, AppState> {
     return (
       <Container>
         <H1>Coaching Plays</H1>
-        {isLoading ? (
-          <CopyText>Loading...</CopyText>
-        ) : (
-          <FlatList
-            data={this.state.plays}
-            keyExtractor={play => play.id.toString()}
-            renderItem={({ item: play }) => {
-              const { id, title, description } = play;
-              return (
-                <PlayCard>
-                  <H3>
-                    #{id} {title}
-                  </H3>
-                  <CopyText>
-                    {description.charAt
-                      ? `${description
-                          .charAt(0)
-                          .toUpperCase()}${description.slice(1)}`
-                      : "-"}
-                  </CopyText>
-                </PlayCard>
-              );
-            }}
-            ListEmptyComponent={
-              <CopyText>No plays found in this playbook :(</CopyText>
-            }
-            ListHeaderComponent={
-              <SearchBox
-                placeholderTextColor={"#aaa"}
-                placeholder={"Search here..."}
-              />
-            }
-          />
-        )}
+        <FlatList
+          style={{ width: "100%" }}
+          data={plays}
+          keyExtractor={play => play.id.toString()}
+          refreshing={isLoading}
+          onRefresh={this.fetchPlays}
+          renderItem={({ item: play }) => {
+            const { id, title, description } = play;
+            return (
+              <PlayCard>
+                <H3>
+                  #{id} {title}
+                </H3>
+                <CopyText>
+                  {description.charAt
+                    ? `${description
+                        .charAt(0)
+                        .toUpperCase()}${description.slice(1)}`
+                    : "-"}
+                </CopyText>
+              </PlayCard>
+            );
+          }}
+          ListEmptyComponent={
+            isLoading ? null : (
+              <CopyText style={{ textAlign: "center" }}>
+                No plays found in this playbook :(
+              </CopyText>
+            )
+          }
+          ListHeaderComponent={
+            <SearchBox
+              placeholderTextColor={"#aaa"}
+              placeholder={"Search here..."}
+              onChangeText={text => {
+                this.setState({
+                  ...this.state,
+                  plays: text ? fuse.search(text) : fuse.list
+                });
+              }}
+            />
+          }
+        />
       </Container>
     );
   }
