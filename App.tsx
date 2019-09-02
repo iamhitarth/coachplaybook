@@ -38,7 +38,7 @@ const SearchBox = styled.TextInput`
   border: solid 1px #aaa;
   border-radius: 8px;
   padding: 10px;
-  margin: 10px 0;
+  background-color: #fff;
 `;
 
 type Play = {
@@ -146,6 +146,7 @@ export default class App extends React.Component<null, AppState> {
               }}
             />
           }
+          stickyHeaderIndices={[0]}
         />
       </Container>
     );
