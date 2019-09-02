@@ -3,6 +3,10 @@ import { FlatList } from "react-native";
 import styled from "styled-components/native";
 import Fuse from "fuse.js";
 
+/* TODO
+Reset list scroll position on changing of search text
+ */
+
 const Container = styled.View`
   flex: 1;
   background-color: #fff;
@@ -41,6 +45,16 @@ const SearchBox = styled.TextInput`
   background-color: #fff;
 `;
 
+const ClearSearchButton = styled.TouchableOpacity`
+  position: absolute;
+  right: 15px;
+  top: 7.5px;
+`;
+
+const ButtonText = styled.Text`
+  font-size: 25px;
+`;
+
 type Play = {
   id: number;
   title: string;
@@ -51,12 +65,8 @@ type Play = {
 type AppState = {
   isLoading: boolean;
   plays: Array<Play>;
+  searchText: string;
 };
-
-/* 
-TODO
-Click a cross to clear search and restore all plays
-*/
 
 let fuse: Fuse<Array<Play>>;
 const searchOptions: Fuse.FuseOptions<Play> = {
@@ -76,7 +86,8 @@ const searchOptions: Fuse.FuseOptions<Play> = {
 export default class App extends React.Component<null, AppState> {
   state: AppState = {
     isLoading: true,
-    plays: []
+    plays: [],
+    searchText: ""
   };
 
   fetchPlays = (query?: string) => {
@@ -92,6 +103,14 @@ export default class App extends React.Component<null, AppState> {
           this.setState({ plays, isLoading: false });
           fuse = new Fuse(plays, searchOptions);
         });
+    });
+  };
+
+  onSearchTextChange = (text: string) => {
+    this.setState({
+      ...this.state,
+      searchText: text,
+      plays: text ? fuse.search(text) : fuse.list
     });
   };
 
@@ -135,16 +154,17 @@ export default class App extends React.Component<null, AppState> {
             )
           }
           ListHeaderComponent={
-            <SearchBox
-              placeholderTextColor={"#aaa"}
-              placeholder={"Search here..."}
-              onChangeText={text => {
-                this.setState({
-                  ...this.state,
-                  plays: text ? fuse.search(text) : fuse.list
-                });
-              }}
-            />
+            <>
+              <SearchBox
+                placeholderTextColor={"#aaa"}
+                placeholder={"Search here..."}
+                value={this.state.searchText}
+                onChangeText={this.onSearchTextChange}
+              />
+              <ClearSearchButton onPress={() => this.onSearchTextChange("")}>
+                <ButtonText style={{ fontSize: 25 }}>X</ButtonText>
+              </ClearSearchButton>
+            </>
           }
           stickyHeaderIndices={[0]}
         />
