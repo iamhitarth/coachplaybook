@@ -37,22 +37,26 @@ const CopyText = styled.Text`
   font-size: 20px;
 `;
 
+const SearchContainer = styled.View`
+  flex-direction: row;
+  background-color: #fff;
+  padding-bottom: 10px;
+`;
+
 const SearchBox = styled.TextInput`
   font-size: 20px;
   border: solid 1px #aaa;
   border-radius: 8px;
   padding: 10px;
-  background-color: #fff;
+  flex: 1;
 `;
 
 const ClearSearchButton = styled.TouchableOpacity`
-  position: absolute;
-  right: 15px;
-  top: 7.5px;
+  padding: 10px;
 `;
 
 const ButtonText = styled.Text`
-  font-size: 25px;
+  font-size: 30px;
 `;
 
 type Play = {
@@ -154,7 +158,7 @@ export default class App extends React.Component<null, AppState> {
             )
           }
           ListHeaderComponent={
-            <>
+            <SearchContainer>
               <SearchBox
                 placeholderTextColor={"#aaa"}
                 placeholder={"Search here..."}
@@ -162,9 +166,9 @@ export default class App extends React.Component<null, AppState> {
                 onChangeText={this.onSearchTextChange}
               />
               <ClearSearchButton onPress={() => this.onSearchTextChange("")}>
-                <ButtonText style={{ fontSize: 25 }}>X</ButtonText>
+                <ButtonText>X</ButtonText>
               </ClearSearchButton>
-            </>
+            </SearchContainer>
           }
           stickyHeaderIndices={[0]}
         />
