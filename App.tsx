@@ -5,6 +5,7 @@ import Fuse from "fuse.js";
 
 /* TODO
 Reset list scroll position on changing of search text
+Fix issue with search text input staying in focus - remove it as list header component
  */
 
 const Container = styled.View`
